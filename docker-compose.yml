@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql
+    volumes:
+     - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=rizal
+      - POSTGRES_PASSWORD=rizalroot
+      - POSTGRES_DB=vtuber_livechat_db
