@@ -43,7 +43,7 @@ func (service *UserServiceImpl) Register(ctx *gin.Context, request *domain.UserR
 			return domain.ToUserResponse(user), errGenerateHash
 		}
 
-		userData := domain.User{
+		userData := &domain.User{
 			FirstName: request.FirstName,
 			LastName:  request.LastName,
 			Username:  request.UserName,
@@ -54,13 +54,13 @@ func (service *UserServiceImpl) Register(ctx *gin.Context, request *domain.UserR
 			UpdatedAt: time.Now(),
 		}
 
-		errRegister := service.Repository.Register(ctx, tx, &userData)
+		errRegister := service.Repository.Register(ctx, tx, userData)
 
 		if errRegister != nil {
 			fmt.Println("errRegister")
-			return domain.ToUserResponse(&userData), errRegister
+			return domain.ToUserResponse(userData), errRegister
 		}
-		return domain.ToUserResponse(&userData), nil
+		return domain.ToUserResponse(userData), nil
 	} else {
 		return domain.ToUserResponse(user), err
 	}
@@ -77,4 +77,33 @@ func (service *UserServiceImpl) Login(ctx *gin.Context, request *domain.UserLogi
 	}
 
 	return domain.ToUserResponse(user), nil
+}
+
+func (service *UserServiceImpl) Update(ctx *gin.Context, request *domain.UserUpdateRequest) (domain.UserResponse, error) {
+	err := service.Validate.Struct(request)
+	helper.PanicIfError(err)
+
+	tx := service.DB.Begin()
+	defer helper.CommitOrRollback(tx)
+
+	user, errFindById := service.Repository.FindById(ctx, tx, request.Id)
+
+	if errFindById != nil {
+		return domain.ToUserResponse(user), errFindById
+	}
+
+	updateData := &domain.UserUpdateRequest{
+		Id:        user.Id,
+		FirstName: request.FirstName,
+		LastName:  request.LastName,
+		Email:     request.Email,
+	}
+
+	updatedUser, errUpdateUser := service.Repository.UpdateUserById(ctx, tx, updateData)
+
+	if errUpdateUser != nil {
+		return domain.ToUserResponse(updatedUser), errFindById
+	}
+
+	return domain.ToUserResponse(updatedUser), nil
 }

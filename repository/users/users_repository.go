@@ -10,4 +10,6 @@ import (
 type UserRepository interface {
 	Register(ctx *gin.Context, tx *gorm.DB, req *domain.User) error
 	FindByUsername(ctx *gin.Context, tx *gorm.DB, username string) (*domain.User, error)
+	FindById(ctx *gin.Context, tx *gorm.DB, id int) (*domain.User, error)
+	UpdateUserById(ctx *gin.Context, tx *gorm.DB, req *domain.UserUpdateRequest) (*domain.User, error)
 }
