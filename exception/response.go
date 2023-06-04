@@ -8,15 +8,20 @@ import (
 )
 
 func Response(c *gin.Context, status int, data interface{}, err error) {
-	webResponse := domain.WebResponse{
-		Code:   status,
-		Status: http.StatusText(status),
-		Data:   data,
-	}
 
 	if err != nil {
+		webResponse := domain.WebResponse{
+			Code:   status,
+			Status: http.StatusText(status),
+			Data:   err.Error(),
+		}
 		c.JSON(status, &webResponse)
 	} else {
+		webResponse := domain.WebResponse{
+			Code:   status,
+			Status: http.StatusText(status),
+			Data:   data,
+		}
 		c.JSON(status, &webResponse)
 	}
 }
