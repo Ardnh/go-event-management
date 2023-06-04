@@ -28,7 +28,7 @@ func (controller *RolesControllerImpl) Create(c *gin.Context) {
 			Status: "Internal Server Error",
 			Data:   err.Error(),
 		}
-		c.JSON(http.StatusBadRequest, webResponse)
+		c.JSON(http.StatusBadRequest, &webResponse)
 		return
 	}
 
@@ -41,7 +41,7 @@ func (controller *RolesControllerImpl) Create(c *gin.Context) {
 			Data:   err.Error(),
 		}
 
-		c.JSON(http.StatusBadRequest, webResponse)
+		c.JSON(http.StatusBadRequest, &webResponse)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (controller *RolesControllerImpl) Create(c *gin.Context) {
 		Data:   role,
 	}
 
-	c.JSON(http.StatusOK, webResponse)
+	c.JSON(http.StatusOK, &webResponse)
 }
 
 func (controller *RolesControllerImpl) Update(c *gin.Context) {
@@ -63,7 +63,7 @@ func (controller *RolesControllerImpl) Update(c *gin.Context) {
 			Status: "Internal Server Error",
 			Data:   err.Error(),
 		}
-		c.JSON(http.StatusInternalServerError, webResponse)
+		c.JSON(http.StatusInternalServerError, &webResponse)
 		return
 	}
 
@@ -76,7 +76,7 @@ func (controller *RolesControllerImpl) Update(c *gin.Context) {
 			Data:   err.Error(),
 		}
 
-		c.JSON(http.StatusBadRequest, webResponse)
+		c.JSON(http.StatusBadRequest, &webResponse)
 		return
 	}
 
@@ -86,7 +86,7 @@ func (controller *RolesControllerImpl) Update(c *gin.Context) {
 		Data:   role,
 	}
 
-	c.JSON(http.StatusOK, webResponse)
+	c.JSON(http.StatusOK, &webResponse)
 }
 
 func (controller *RolesControllerImpl) Delete(c *gin.Context) {

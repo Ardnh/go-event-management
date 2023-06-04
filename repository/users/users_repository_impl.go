@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"go/ems/domain"
 	"strings"
 
@@ -41,26 +40,6 @@ func (repository *UserRepositoryImpl) FindById(ctx *gin.Context, tx *gorm.DB, id
 	if err := tx.WithContext(ctx).Table("users").Where("id = ?", id).First(&user).Error; err != nil {
 		return &user, err
 	} else {
-		return &user, nil
-	}
-}
-
-func (repository *UserRepositoryImpl) UpdateUserById(ctx *gin.Context, tx *gorm.DB, req *domain.UserUpdateRequest) (*domain.User, error) {
-	var user domain.User
-
-	updateData := map[string]interface{}{
-		"Id":        req.Id,
-		"FirstName": req.FirstName,
-		"LastName":  req.LastName,
-		"Username":  req.UserName,
-		"Email":     req.Email,
-	}
-
-	if err := tx.WithContext(ctx).Model(&user).Updates(&updateData).Error; err != nil {
-		fmt.Println("Update success")
-		return &user, err
-	} else {
-		fmt.Println("Update Fail")
 		return &user, nil
 	}
 }
