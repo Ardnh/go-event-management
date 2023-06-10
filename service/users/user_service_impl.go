@@ -1,8 +1,9 @@
 package service
 
 import (
+	"errors"
 	"fmt"
-	"go/ems/domain"
+	domain "go/ems/domain/users"
 	"go/ems/helper"
 	repository "go/ems/repository/users"
 
@@ -27,23 +28,25 @@ func NewUserService(repository repository.UserRepository, db *gorm.DB, validate 
 	}
 }
 
-func (service *UserServiceImpl) Register(ctx *gin.Context, request *domain.UserRegisterRequest) (domain.UserResponse, error) {
+func (service *UserServiceImpl) Register(ctx *gin.Context, request *domain.UserRegisterRequest) error {
 	err := service.Validate.Struct(request)
 	helper.PanicIfError(err)
 
 	tx := service.DB.Begin()
 	defer helper.CommitOrRollback(tx)
 
-	user, errFindByUsername := service.Repository.FindByUsername(ctx, tx, request.UserName)
+	_, errFindByEmail := service.Repository.FindByEmail(ctx, tx, request.Email)
 
-	if errFindByUsername != nil {
+	if errors.Is(errFindByEmail, gorm.ErrRecordNotFound) {
 		hashPassword, errGenerateHash := helper.GenerateHashPassword(request.Password)
 		if errGenerateHash != nil {
 			fmt.Println("errGenerateHash")
-			return domain.ToUserResponse(user), errGenerateHash
+			return errGenerateHash
 		}
 
-		userData := &domain.User{
+		fmt.Println(&request)
+
+		userData := &domain.UserRegister{
 			FirstName: request.FirstName,
 			LastName:  request.LastName,
 			Username:  request.UserName,
@@ -57,20 +60,23 @@ func (service *UserServiceImpl) Register(ctx *gin.Context, request *domain.UserR
 		errRegister := service.Repository.Register(ctx, tx, userData)
 
 		if errRegister != nil {
-			fmt.Println("errRegister")
-			return domain.ToUserResponse(userData), errRegister
+			return errRegister
 		}
-		return domain.ToUserResponse(userData), nil
+		return nil
 	} else {
-		return domain.ToUserResponse(user), err
+		errText := fmt.Sprintf("users with %s already exist", request.Email)
+		return errors.New(errText)
 	}
 }
 
 func (service *UserServiceImpl) Login(ctx *gin.Context, request *domain.UserLoginRequest) (domain.UserResponse, error) {
+	errValidate := service.Validate.Struct(request)
+	helper.PanicIfError(errValidate)
+
 	tx := service.DB.Begin()
 	defer helper.CommitOrRollback(tx)
 
-	user, err := service.Repository.FindByUsername(ctx, tx, request.Username)
+	user, err := service.Repository.FindByEmail(ctx, tx, request.Email)
 
 	if err != nil {
 		return domain.ToUserResponse(user), err

@@ -18,7 +18,7 @@ func extractBearerToken(jwt string) string {
 	return ""
 }
 
-func AuthCheck(c *gin.Context) {
+func AuthUsersCheck(c *gin.Context) {
 	// Extract token from Header
 	tokenString := extractBearerToken(c.GetHeader("Authorization"))
 	if tokenString == "" {

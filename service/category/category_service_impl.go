@@ -18,7 +18,7 @@ type CategoryServiceImpl struct {
 	Validate   *validator.Validate
 }
 
-func NewRolesService(repository repository.CategoryRepository, db *gorm.DB, validate *validator.Validate) CategoryService {
+func NewCategoryService(repository repository.CategoryRepository, db *gorm.DB, validate *validator.Validate) CategoryService {
 	return &CategoryServiceImpl{
 		Repository: repository,
 		DB:         db,

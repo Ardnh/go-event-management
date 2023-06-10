@@ -1,14 +1,14 @@
 package repository
 
 import (
-	"go/ems/domain"
+	domain "go/ems/domain/users"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
-	Register(ctx *gin.Context, tx *gorm.DB, req *domain.User) error
-	FindByUsername(ctx *gin.Context, tx *gorm.DB, username string) (*domain.User, error)
+	Register(ctx *gin.Context, tx *gorm.DB, req *domain.UserRegister) error
+	FindByEmail(ctx *gin.Context, tx *gorm.DB, email string) (*domain.UserQueryResponse, error)
 	FindById(ctx *gin.Context, tx *gorm.DB, id int) (*domain.User, error)
 }

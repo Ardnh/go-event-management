@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"go/ems/domain"
+	domain "go/ems/domain/users"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -15,7 +15,7 @@ func NewUserRepository() UserRepository {
 	return &UserRepositoryImpl{}
 }
 
-func (repository *UserRepositoryImpl) Register(ctx *gin.Context, tx *gorm.DB, req *domain.User) error {
+func (repository *UserRepositoryImpl) Register(ctx *gin.Context, tx *gorm.DB, req *domain.UserRegister) error {
 
 	if err := tx.WithContext(ctx).Table("users").Create(&req).Error; err != nil {
 		return err
@@ -24,14 +24,25 @@ func (repository *UserRepositoryImpl) Register(ctx *gin.Context, tx *gorm.DB, re
 
 }
 
-func (repository *UserRepositoryImpl) FindByUsername(ctx *gin.Context, tx *gorm.DB, username string) (*domain.User, error) {
-	var user domain.User
+func (repository *UserRepositoryImpl) FindByEmail(ctx *gin.Context, tx *gorm.DB, email string) (*domain.UserQueryResponse, error) {
+	var result domain.UserQueryResponse
 
-	if err := tx.WithContext(ctx).Table("users").Where("username = ?", strings.ToLower(username)).First(&user).Error; err != nil {
-		return &user, err
+	// SELECT first_name, last_name, username, email, active, role_id, name as role FROM users JOIN roles ON users.role_id = roles.id WHERE users.id = 14;
+	err := tx.
+		WithContext(ctx).
+		Table("users").
+		Select("users.id, users.first_name, users.last_name, users.username, users.email, users.password, users.active, users.role_id, name as role").
+		Joins("JOIN roles ON users.role_id = roles.id").
+		Where("users.email = ?", strings.ToLower(email)).
+		First(&result).
+		Error
+
+	if err != nil {
+		return &result, err
 	} else {
-		return &user, nil
+		return &result, nil
 	}
+
 }
 
 func (repository *UserRepositoryImpl) FindById(ctx *gin.Context, tx *gorm.DB, id int) (*domain.User, error) {

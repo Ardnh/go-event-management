@@ -14,13 +14,13 @@ func GenerateHashPassword(pwd string) (string, error) {
 	return string(bytes), nil
 }
 
-func CheckPassword(password string, hashPassword string) bool {
+func CheckPassword(password string, hashPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(password))
 
 	if err != nil {
-		return false
+		return err
 	} else {
-		return true
+		return nil
 	}
 
 }

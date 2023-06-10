@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"fmt"
-	"go/ems/domain"
+	userDomain "go/ems/domain/users"
+	"go/ems/exception"
 	"go/ems/helper"
 	service "go/ems/service/users"
 	"net/http"
@@ -22,93 +22,77 @@ func NewUserController(service service.UserService) UserController {
 }
 
 func (controller *UserControllerImpl) Register(c *gin.Context) {
-	var request domain.UserRegisterRequest
-
-	fmt.Println("register")
+	var request userDomain.UserRegisterRequest
 
 	// Internal  Server Error
 	if err := c.ShouldBindJSON(&request); err != nil {
-		webResponse := domain.WebResponse{
-			Code:   http.StatusInternalServerError,
-			Status: "Internal Server Error",
-			Data:   err.Error(),
-		}
-		c.JSON(http.StatusInternalServerError, webResponse)
+
+		exception.Response(c, http.StatusBadRequest, nil, err)
 		return
 	}
 
-	_, err := controller.Service.Register(c, &request)
-	if err != nil {
-		webResponse := domain.WebResponse{
-			Code:   http.StatusBadRequest,
-			Status: "Bad Request",
-			Data:   err.Error(),
-		}
-		c.JSON(http.StatusBadRequest, webResponse)
+	errRegister := controller.Service.Register(c, &request)
+	if errRegister != nil {
+
+		exception.Response(c, http.StatusBadRequest, nil, errRegister)
 		return
 	}
 
 	// Success
-	webResponse := domain.WebResponse{
-		Code:   http.StatusOK,
-		Status: "Created",
-	}
-	c.JSON(http.StatusOK, webResponse)
+	exception.Response(c, http.StatusOK, nil, nil)
 }
 
 func (controller *UserControllerImpl) Login(c *gin.Context) {
-	var request domain.UserLoginRequest
+	var request userDomain.UserLoginRequest
 
+	// Json parse
 	if err := c.ShouldBindJSON(&request); err != nil {
-		webResponse := domain.WebResponse{
-			Code:   http.StatusInternalServerError,
-			Status: "Internal Server Error",
-			Data:   err.Error(),
-		}
-		c.JSON(http.StatusInternalServerError, webResponse)
+
+		exception.Response(c, http.StatusInternalServerError, nil, err)
 		return
 	}
 
+	//	Validate request
+
+	// Send request to users service
 	user, errLogin := controller.Service.Login(c, &request)
 
 	if errLogin != nil {
-		webResponse := domain.WebResponse{
-			Code:   http.StatusBadRequest,
-			Status: "Bad Request",
-			Data:   errLogin.Error(),
-		}
-		c.JSON(http.StatusBadRequest, webResponse)
+
+		exception.Response(c, http.StatusBadRequest, nil, errLogin)
 		return
 	}
 
+	// Check password
+	errCheckPassword := helper.CheckPassword(request.Password, user.Password)
+
+	if errCheckPassword != nil {
+
+		exception.Response(c, http.StatusBadRequest, nil, errCheckPassword)
+		return
+	}
+
+	// Generate token
 	id := strconv.Itoa(user.Id)
-	token, errToken := helper.GenerateJWTKey(id)
+	token, errToken := helper.GenerateJWTKey(id, user.Role)
 
 	if errToken != nil {
-		webResponse := domain.WebResponse{
-			Code:   http.StatusInternalServerError,
-			Status: "Internal Server Error",
-			Data:   errToken,
-		}
-		c.JSON(http.StatusInternalServerError, webResponse)
+
+		exception.Response(c, http.StatusInternalServerError, nil, errToken)
 		return
 	}
 
-	response := domain.UserResponseWithToken{
+	response := userDomain.UserResponseWithToken{
 		Id:        user.Id,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		UserName:  user.UserName,
 		Email:     user.Email,
+		RoleId:    user.RoleId,
+		Role:      user.Role,
 		Token:     token,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
 	}
 
-	webResponse := domain.WebResponse{
-		Code:   http.StatusOK,
-		Status: "OK",
-		Data:   response,
-	}
-	c.JSON(http.StatusOK, webResponse)
+	// Send response
+	exception.Response(c, http.StatusOK, response, nil)
 }

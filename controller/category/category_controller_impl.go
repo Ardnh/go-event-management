@@ -3,7 +3,7 @@ package controller
 import (
 	domain "go/ems/domain/category"
 	"go/ems/exception"
-	service "go/ems/service/categories"
+	service "go/ems/service/category"
 	"net/http"
 	"strconv"
 
