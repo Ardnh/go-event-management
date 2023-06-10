@@ -53,6 +53,7 @@ type UserResponseWithToken struct {
 	UserName  string `json:"username"`
 	Email     string `json:"email"`
 	Token     string `json:"token"`
+	Active    bool   `json:"active"`
 	RoleId    int    `json:"role_id"`
 	Role      string `json:"role"`
 }
@@ -75,7 +76,6 @@ type UserQueryResponse struct {
 	Username  string
 	Email     string
 	Password  string
-	Active    bool
 	RoleId    int
 	Role      string
 }

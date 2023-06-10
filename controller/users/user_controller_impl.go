@@ -94,5 +94,5 @@ func (controller *UserControllerImpl) Login(c *gin.Context) {
 	}
 
 	// Send response
-	exception.Response(c, http.StatusOK, response, nil)
+	exception.Response(c, http.StatusOK, &response, nil)
 }

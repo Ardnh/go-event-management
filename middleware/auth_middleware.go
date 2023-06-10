@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"errors"
+	"fmt"
 	"go/ems/domain"
 	"go/ems/helper"
 	"net/http"
@@ -33,6 +34,8 @@ func AuthUsersCheck(c *gin.Context) {
 	// Verify token validity
 	token, err := verifyJWTToken(tokenString)
 
+	fmt.Println(token.Signature)
+
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, domain.WebResponse{
 			Code:   http.StatusBadRequest,
@@ -42,12 +45,67 @@ func AuthUsersCheck(c *gin.Context) {
 		return
 	}
 
-	_, OK := token.Claims.(jwt.MapClaims)
+	claims, OK := token.Claims.(jwt.MapClaims)
 	if !OK {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, domain.WebResponse{
 			Code:   http.StatusInternalServerError,
 			Status: "INTERNAL SERVER ERROR",
 			Data:   "Unable to parse claim",
+		})
+		return
+	}
+
+	if claims["role"].(string) != "user" && token.Valid {
+		c.AbortWithStatusJSON(http.StatusBadRequest, domain.WebResponse{
+			Code:   http.StatusBadRequest,
+			Status: http.StatusText(http.StatusBadRequest),
+			Data:   "You are not allowed to access this resource!",
+		})
+		return
+	}
+
+	c.Next()
+}
+
+func AuthAdminCheck(c *gin.Context) {
+	// Extract token from Header
+	tokenString := extractBearerToken(c.GetHeader("Authorization"))
+	if tokenString == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, domain.WebResponse{
+			Code:   http.StatusUnauthorized,
+			Status: "UNAUTHORIZED",
+			Data:   "Login Required",
+		})
+		return
+	}
+
+	// Verify token validity
+	token, err := verifyJWTToken(tokenString)
+
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, domain.WebResponse{
+			Code:   http.StatusBadRequest,
+			Status: "BAD REQUEST",
+			Data:   err.Error(),
+		})
+		return
+	}
+
+	claims, OK := token.Claims.(jwt.MapClaims)
+	if !OK {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, domain.WebResponse{
+			Code:   http.StatusInternalServerError,
+			Status: "INTERNAL SERVER ERROR",
+			Data:   "Unable to parse claim",
+		})
+		return
+	}
+
+	if claims["role"].(string) != "admin" && token.Valid {
+		c.AbortWithStatusJSON(http.StatusBadRequest, domain.WebResponse{
+			Code:   http.StatusBadRequest,
+			Status: http.StatusText(http.StatusBadRequest),
+			Data:   "You are not allowed to access this resource!",
 		})
 		return
 	}
@@ -65,15 +123,13 @@ func verifyJWTToken(tokenString string) (*jwt.Token, error) {
 		return []byte(jwtKey), nil
 	})
 
-	// if token.Valid {
-	// 	return true, nil
-	// } else if errors.Is(err, jwt.ErrTokenMalformed) {
-	// 	return false, jwt.ErrTokenMalformed
-	// } else if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet) {
-	// 	return false, jwt.ErrTokenExpired
-	// } else {
-	// 	return false, jwt.ErrTokenNotValidYet
-	// }
-
-	return token, err
+	if token.Valid {
+		return token, nil
+	} else if errors.Is(err, jwt.ErrTokenMalformed) {
+		return token, jwt.ErrTokenMalformed
+	} else if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet) {
+		return token, jwt.ErrTokenExpired
+	} else {
+		return token, jwt.ErrTokenNotValidYet
+	}
 }

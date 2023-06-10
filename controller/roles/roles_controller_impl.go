@@ -181,9 +181,10 @@ func (controller *RolesControllerImpl) FindAll(c *gin.Context) {
 
 	webResponse := domain.WebResponseWithPagination{
 		Code:   http.StatusOK,
-		Status: "Successfully Get Roles",
+		Status: http.StatusText(http.StatusOK),
 		Page:   page,
 		Limit:  limit,
+		Sort:   sortString,
 		Data:   roles,
 	}
 

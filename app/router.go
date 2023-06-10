@@ -40,16 +40,17 @@ func Router(db *gorm.DB, validate *validator.Validate) *gin.Engine {
 
 	// ADMIN
 	{
-		admin.Use(middleware.AuthUsersCheck).POST("/roles", rolesController.Create)
-		admin.Use(middleware.AuthUsersCheck).PUT("/roles", rolesController.Update)
-		admin.Use(middleware.AuthUsersCheck).DELETE("/roles", rolesController.Delete)
-		admin.Use(middleware.AuthUsersCheck).GET("/roles", rolesController.FindAll)
-		admin.Use(middleware.AuthUsersCheck).GET("/role", rolesController.FindById)
 
-		admin.Use(middleware.AuthUsersCheck).POST("/category", categoryController.Create)
-		admin.Use(middleware.AuthUsersCheck).PUT("/category", categoryController.Update)
-		admin.Use(middleware.AuthUsersCheck).DELETE("/category", categoryController.Delete)
-		admin.Use(middleware.AuthUsersCheck).GET("/category", categoryController.FindById)
+		admin.Use(middleware.AuthAdminCheck).POST("/roles", rolesController.Create)
+		admin.Use(middleware.AuthAdminCheck).PUT("/roles", rolesController.Update)
+		admin.Use(middleware.AuthAdminCheck).DELETE("/roles", rolesController.Delete)
+		admin.Use(middleware.AuthAdminCheck).GET("/roles", rolesController.FindAll)
+		admin.Use(middleware.AuthAdminCheck).GET("/role", rolesController.FindById)
+
+		admin.Use(middleware.AuthAdminCheck).POST("/category", categoryController.Create)
+		admin.Use(middleware.AuthAdminCheck).PUT("/category", categoryController.Update)
+		admin.Use(middleware.AuthAdminCheck).DELETE("/category", categoryController.Delete)
+		admin.Use(middleware.AuthAdminCheck).GET("/category", categoryController.FindById)
 	}
 
 	// PUBLIC

@@ -11,5 +11,6 @@ type WebResponseWithPagination struct {
 	Status string      `json:"status"`
 	Page   int         `json:"page"`
 	Limit  int         `json:"limit"`
+	Sort   string      `json:"sort"`
 	Data   interface{} `json:"data"`
 }

@@ -42,7 +42,6 @@ func (repository *UserRepositoryImpl) FindByEmail(ctx *gin.Context, tx *gorm.DB,
 	} else {
 		return &result, nil
 	}
-
 }
 
 func (repository *UserRepositoryImpl) FindById(ctx *gin.Context, tx *gorm.DB, id int) (*domain.User, error) {
