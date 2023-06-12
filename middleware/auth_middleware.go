@@ -59,7 +59,7 @@ func AuthUsersCheck(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, domain.WebResponse{
 			Code:   http.StatusBadRequest,
 			Status: http.StatusText(http.StatusBadRequest),
-			Data:   "You are not allowed to access this resource!",
+			Data:   "You are not allowed to access this resources!",
 		})
 		return
 	}
@@ -105,7 +105,7 @@ func AuthAdminCheck(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, domain.WebResponse{
 			Code:   http.StatusBadRequest,
 			Status: http.StatusText(http.StatusBadRequest),
-			Data:   "You are not allowed to access this resource!",
+			Data:   "You are not allowed to access this resources!",
 		})
 		return
 	}
