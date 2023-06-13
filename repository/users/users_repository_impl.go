@@ -53,3 +53,65 @@ func (repository *UserRepositoryImpl) FindById(ctx *gin.Context, tx *gorm.DB, id
 		return &user, nil
 	}
 }
+
+func (repository *UserRepositoryImpl) UpdateActiveStatusTrue(ctx *gin.Context, tx *gorm.DB, id *int) error {
+	var active bool
+
+	err := tx.
+		WithContext(ctx).
+		Table("users").
+		Select("active").
+		Where("events.id = ?", &id).
+		First(&active).
+		Error
+
+	if err != nil {
+		return err
+	} else {
+		active = true
+	}
+
+	errUpdate := tx.
+		WithContext(ctx).
+		Table("events").
+		Update("views = ?", &active).
+		Where("events.id = ?", &id).
+		Error
+
+	if errUpdate != nil {
+		return errUpdate
+	} else {
+		return nil
+	}
+}
+
+func (repository *UserRepositoryImpl) UpdateActiveStatusFalse(ctx *gin.Context, tx *gorm.DB, id int) error {
+	var active bool
+
+	err := tx.
+		WithContext(ctx).
+		Table("users").
+		Select("active").
+		Where("events.id = ?", &id).
+		First(&active).
+		Error
+
+	if err != nil {
+		return err
+	} else {
+		active = false
+	}
+
+	errUpdate := tx.
+		WithContext(ctx).
+		Table("events").
+		Update("views = ?", &active).
+		Where("events.id = ?", &id).
+		Error
+
+	if errUpdate != nil {
+		return errUpdate
+	} else {
+		return nil
+	}
+}

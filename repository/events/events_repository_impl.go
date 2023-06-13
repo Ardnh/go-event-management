@@ -79,7 +79,12 @@ func (repository *EventsRepositoryImpl) UpdateEventsViews(ctx *gin.Context, tx *
 
 func (repository *EventsRepositoryImpl) Delete(ctx *gin.Context, tx *gorm.DB, id int) error {
 
-	if err := tx.WithContext(ctx).Delete(&domain.Events{}, id).Error; err != nil {
+	err := tx.
+		WithContext(ctx).
+		Delete(&domain.Events{}, id).
+		Error
+
+	if err != nil {
 		return err
 	} else {
 		return nil
@@ -178,7 +183,8 @@ func (repository *EventsRepositoryImpl) FindTodayEvents(ctx *gin.Context, tx *go
 	err := tx.
 		WithContext(ctx).
 		Table("events").
-		Select("events.id, events.name, events.description, events.start_date, events.end_date, events.registration_url, events.banner, events.address, events.views, events.user_id, events.category_id").
+		Select("events.id, events.name, events.description, events.start_date, events.end_date, events.registration_url, events.banner, events.address, events.views, events.user_id, events.category_id, users.username").
+		Joins("JOIN users ON events.user_id = users.id").
 		Where("start_date = ?", date).
 		Limit(pageSize).
 		Offset((pageNumber - 1) * pageSize).
@@ -193,16 +199,60 @@ func (repository *EventsRepositoryImpl) FindTodayEvents(ctx *gin.Context, tx *go
 	}
 }
 
-func (repository *EventsRepositoryImpl) FindWeeklyEvents(ctx *gin.Context, tx *gorm.DB, date string) (*[]domain.Events, error) {
+func (repository *EventsRepositoryImpl) FindWeeklyEvents(ctx *gin.Context, tx *gorm.DB) (*[]domain.Events, error) {
+	var result *[]domain.Events
+	err := tx.
+		WithContext(ctx).
+		Table("events").
+		Select("events.id, events.name, events.description, events.start_date, events.end_date, events.registration_url, events.banner, events.address, events.views, events.user_id, events.category_id, users.username").
+		Joins("JOIN users ON events.user_id = users.id").
+		Where("start_date >= CURDATE() AND start_date <= DATE_ADD(CURDATE(), INTERVAL 7 DAY)").
+		Find(&result).
+		Error
 
+	if err != nil {
+		return result, err
+	} else {
+		return result, nil
+	}
 }
 
-func (repository *EventsRepositoryImpl) FindMonthlyEvents(ctx *gin.Context, tx *gorm.DB, date string) (*[]domain.Events, error) {
+func (repository *EventsRepositoryImpl) FindMonthlyEvents(ctx *gin.Context, tx *gorm.DB) (*[]domain.Events, error) {
+	var result *[]domain.Events
 
+	err := tx.
+		WithContext(ctx).
+		Table("events").
+		Select("events.id, events.name, events.description, events.start_date, events.end_date, events.registration_url, events.banner, events.address, events.views, events.user_id, events.category_id, users.username").
+		Joins("JOIN users ON events.user_id = users.id").
+		Where("start_date >= CURDATE() AND start_date <= DATE_ADD(CURDATE(), INTERVAL 1 MONTH)").
+		Find(&result).
+		Error
+
+	if err != nil {
+		return result, err
+	} else {
+		return result, nil
+	}
 }
 
-func (repository *EventsRepositoryImpl) FindUpcomingEvents(ctx *gin.Context, tx *gorm.DB, date string) (*[]domain.Events, error) {
+func (repository *EventsRepositoryImpl) FindUpcomingEvents(ctx *gin.Context, tx *gorm.DB) (*[]domain.Events, error) {
+	var result *[]domain.Events
 
+	err := tx.
+		WithContext(ctx).
+		Table("events").
+		Select("events.id, events.name, events.description, events.start_date, events.end_date, events.registration_url, events.banner, events.address, events.views, events.user_id, events.category_id, users.username").
+		Joins("JOIN users ON events.user_id = users.id").
+		Where("start_date >= CURDATE() AND start_date <= DATE_ADD(CURDATE(), INTERVAL 3 DAY)").
+		Find(&result).
+		Error
+
+	if err != nil {
+		return result, err
+	} else {
+		return result, nil
+	}
 }
 
 func (repository *EventsRepositoryImpl) FindMostViewedEvents(ctx *gin.Context, tx *gorm.DB, pageSize int, orderBy string) (*[]domain.Events, error) {
@@ -212,7 +262,30 @@ func (repository *EventsRepositoryImpl) FindMostViewedEvents(ctx *gin.Context, t
 	err := tx.
 		WithContext(ctx).
 		Table("events").
-		Select("events.id, events.name, events.description, events.start_date, events.end_date, events.registration_url, events.banner, events.address, events.views, events.user_id, events.category_id").
+		Select("events.id, events.name, events.description, events.start_date, events.end_date, events.registration_url, events.banner, events.address, events.views, events.user_id, events.category_id, users.username").
+		Joins("JOIN users ON events.user_id = users.id").
+		Limit(pageSize).
+		Order(sort).
+		Find(&result).
+		Error
+
+	if err != nil {
+		return result, err
+	} else {
+		return result, nil
+	}
+}
+
+func (repository *EventsRepositoryImpl) FindByDateRange(ctx *gin.Context, tx *gorm.DB, pageSize int, orderBy string, start_date string, end_date string) (*[]domain.Events, error) {
+	var result *[]domain.Events
+	sort := fmt.Sprintf("id %s", strings.ToUpper(orderBy))
+
+	err := tx.
+		WithContext(ctx).
+		Table("events").
+		Select("events.id, events.name, events.description, events.start_date, events.end_date, events.registration_url, events.banner, events.address, events.views, events.user_id, events.category_id, users.username").
+		Joins("JOIN users ON events.user_id = users.id").
+		Where("events.start_date BETWEEN ? AND ? ", start_date, end_date).
 		Limit(pageSize).
 		Order(sort).
 		Find(&result).

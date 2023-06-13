@@ -57,4 +57,19 @@ type EventsDeleteRequest struct {
 // Response ===============
 
 type EventsQueryResponse struct {
+	Id              int
+	Name            string
+	Description     string
+	StartDate       string
+	EndDate         string
+	RegistrationUrl string
+	Banner          string
+	Address         string
+	Views           int
+	UserId          int
+	Username        string
+	CategoryId      int
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DeletedAt       time.Time
 }
